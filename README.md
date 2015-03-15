@@ -1,7 +1,7 @@
 mruby-cef
 =========
 
-Mruby bindings to CEF. A component of the [rb-chrome project](https://github.com/jbreeden/rb-chrome).
+Mruby bindings to CEF. A component of the [lamina project](https://github.com/jbreeden/lamina).
 
 Notes for building
 ------------------
@@ -24,12 +24,10 @@ Right now I'm accomplishing this with a block in my `build_config.rb`:
 
 ```Ruby
 conf.cc.flags =  conf.cc.flags[0].map { |val|
-  puts "Checking #{val} #{val == "/MD"}"
   val == "/MD" ? "/MT" : val
 }
 
 conf.cxx.flags =  conf.cxx.flags[0].map { |val|
-  puts "Checking #{val} #{val == "/MD"}"
   val == "/MD" ? "/MT" : val
 }
 ```
