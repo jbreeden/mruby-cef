@@ -28,12 +28,19 @@ mrb_cef_v8_value_unwrap(mrb_state* mrb, mrb_value cef_v8value){
 
 static mrb_value
 mrb_cef_v8_create_undefined(mrb_state *mrb, mrb_value self) {
-  return mrb_cef_v8_value_wrap(mrb, CefV8Value::CreateUndefined());
+   return mrb_cef_v8_value_wrap(mrb, CefV8Value::CreateUndefined());
 }
 
 static mrb_value
 mrb_cef_v8_create_null(mrb_state *mrb, mrb_value self) {
   return mrb_cef_v8_value_wrap(mrb, CefV8Value::CreateNull());
+}
+
+static mrb_value
+mrb_cef_v8_create_bool(mrb_state *mrb, mrb_value self) {
+   mrb_value param;
+   mrb_get_args(mrb, "o", &param);
+   return mrb_cef_v8_value_wrap(mrb, CefV8Value::CreateBool(mrb_test(param)));
 }
 
 static mrb_value
@@ -44,12 +51,23 @@ mrb_cef_v8_create_int(mrb_state *mrb, mrb_value self) {
 }
 
 static mrb_value
+mrb_cef_v8_create_float(mrb_state *mrb, mrb_value self) {
+   mrb_value param;
+   mrb_get_args(mrb, "f", &param);
+   return mrb_cef_v8_value_wrap(mrb, CefV8Value::CreateDouble(mrb_float(param)));
+}
+
+static mrb_value
 mrb_cef_v8_create_string(mrb_state *mrb, mrb_value self) {
   mrb_value rbString;
   mrb_get_args(mrb, "S", &rbString);
   char* cString = mrb_str_to_cstr(mrb, rbString);
-
   return mrb_cef_v8_value_wrap(mrb, CefV8Value::CreateString(cString));
+}
+
+static mrb_value
+mrb_cef_v8_create_object(mrb_state *mrb, mrb_value self) {
+   return mrb_cef_v8_value_wrap(mrb, CefV8Value::CreateObject(NULL));
 }
 
 static mrb_value
@@ -58,7 +76,22 @@ mrb_cef_v8_get_window(mrb_state* mrb, mrb_value self) {
 }
 
 mrb_value
-mrb_cef_v8_js_object_set(mrb_state* mrb, mrb_value self) {
+mrb_cef_v8_js_object_get_property(mrb_state* mrb, mrb_value self) {
+   mrb_value key_param;
+   mrb_get_args(mrb, "o", &key_param);
+
+   CefRefPtr<CefV8Value> jsThis = mrb_cef_v8_value_unwrap(mrb, self);
+
+   CefString key(
+      mrb_str_to_cstr(
+      mrb,
+      mrb_funcall(mrb, key_param, "to_s", 0)));
+
+   return mrb_cef_v8_value_wrap(mrb, jsThis->GetValue(key));
+}
+
+mrb_value
+mrb_cef_v8_js_object_set_property(mrb_state* mrb, mrb_value self) {
   mrb_value key_param;
   mrb_value value_param;
 
@@ -66,6 +99,7 @@ mrb_cef_v8_js_object_set(mrb_state* mrb, mrb_value self) {
 
   CefRefPtr<CefV8Value> jsObjPtr = mrb_cef_v8_value_unwrap(mrb, self);
 
+  // TODO: Implicit conversions if value param is a ruby type
   CefRefPtr<CefV8Value> jsValuePtr = mrb_cef_v8_value_unwrap(mrb, value_param);
 
   CefString key(
@@ -101,11 +135,15 @@ void mrb_mruby_cef_gem_init(mrb_state* mrb) {
   mrb_define_class_method(mrb, mrb_cef.v8_module, "window", mrb_cef_v8_get_window, MRB_ARGS_NONE());
   mrb_define_class_method(mrb, mrb_cef.v8_module, "create_undefined", mrb_cef_v8_create_undefined, MRB_ARGS_NONE());
   mrb_define_class_method(mrb, mrb_cef.v8_module, "create_null", mrb_cef_v8_create_null, MRB_ARGS_NONE());
-  mrb_define_class_method(mrb, mrb_cef.v8_module, "create_string", mrb_cef_v8_create_string, MRB_ARGS_ARG(1, 0));
+  mrb_define_class_method(mrb, mrb_cef.v8_module, "create_bool", mrb_cef_v8_create_bool, MRB_ARGS_ARG(1, 0));
   mrb_define_class_method(mrb, mrb_cef.v8_module, "create_int", mrb_cef_v8_create_int, MRB_ARGS_ARG(1, 0));
+  mrb_define_class_method(mrb, mrb_cef.v8_module, "create_float", mrb_cef_v8_create_float, MRB_ARGS_ARG(1, 0));
+  mrb_define_class_method(mrb, mrb_cef.v8_module, "create_string", mrb_cef_v8_create_string, MRB_ARGS_ARG(1, 0));
+  mrb_define_class_method(mrb, mrb_cef.v8_module, "create_object", mrb_cef_v8_create_object, MRB_ARGS_ARG(0, 0));
   mrb_define_class_method(mrb, mrb_cef.v8_module, "exec", mrb_cef_v8_exec, MRB_ARGS_ARG(1, 0));
 
-  mrb_define_method(mrb, mrb_cef.js_object_class, "[]=", mrb_cef_v8_js_object_set, MRB_ARGS_REQ(2));
+  mrb_define_method(mrb, mrb_cef.js_object_class, "[]", mrb_cef_v8_js_object_get_property, MRB_ARGS_REQ(1));
+  mrb_define_method(mrb, mrb_cef.js_object_class, "[]=", mrb_cef_v8_js_object_set_property, MRB_ARGS_REQ(2));
 }
 
 void mrb_mruby_cef_gem_final(mrb_state* mrb) {}
