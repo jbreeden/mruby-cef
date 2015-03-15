@@ -6,14 +6,10 @@ Mruby bindings to CEF. A component of the [lamina project](https://github.com/jb
 Notes for building
 ------------------
 
-libcef is NOT included. If you try to build mruby with the default gemboxes, you will get 
-unresolved linkage problems.
+libcef is NOT included. This means any mruby executables will fail to link unless you add libcef to your mruby build process.
 
-This is meant to build *only* libmruby, which will then need to be linked with a CEF 
-application to work.
-
-To get the mruby build to work with this gem, just ignore any gems in the default `mrbgems` directory
-that have 'bin' in the name.
+To build *only* libmruby, exclude any gems in the default `mrbgems` directory that have 'bin' in the name. 
+Then you can link libmruby with an application that includes libcef later.
 
 Notes for building on Windows
 -----------------------------
