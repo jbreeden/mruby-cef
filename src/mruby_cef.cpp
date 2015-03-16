@@ -55,6 +55,40 @@ TYPE_CHECK_FN(mrb_cef_v8_value_is_function, IsFunction)
 
 #undef TYPE_CHECK_FN
 
+/* Getting JS Values */
+
+static mrb_value
+mrb_cef_v8_value_get_bool_value(mrb_state *mrb, mrb_value self) {
+   CefRefPtr<CefV8Value> js = mrb_cef_v8_value_unwrap(mrb, self);
+   if (js->GetBoolValue()) {
+      return mrb_true_value();
+   }
+   return mrb_false_value();
+}
+
+static mrb_value
+mrb_cef_v8_value_get_int_value(mrb_state *mrb, mrb_value self) {
+   CefRefPtr<CefV8Value> js = mrb_cef_v8_value_unwrap(mrb, self);
+   mrb_value rb;
+   SET_INT_VALUE(rb, js->GetIntValue());
+   return rb;
+}
+
+static mrb_value
+mrb_cef_v8_value_get_double_value(mrb_state *mrb, mrb_value self) {
+   CefRefPtr<CefV8Value> js = mrb_cef_v8_value_unwrap(mrb, self);
+   mrb_value rb;
+   SET_FLOAT_VALUE(MRB, rb, js->GetDoubleValue());
+   return rb;
+}
+
+static mrb_value
+mrb_cef_v8_value_get_string_value(mrb_state *mrb, mrb_value self) {
+   CefRefPtr<CefV8Value> js = mrb_cef_v8_value_unwrap(mrb, self);
+   mrb_value rb;
+   return mrb_str_new_cstr(mrb, js->GetStringValue().ToString().c_str());
+}
+
 /* Object Creation */
 
 static mrb_value
@@ -164,7 +198,7 @@ mrb_cef_v8_js_object_set_property(mrb_state* mrb, mrb_value self) {
 }
 
 mrb_value
-mrb_cef_v8_js_object_call(mrb_state* mrb, mrb_value self) {
+mrb_cef_v8_js_object_apply(mrb_state* mrb, mrb_value self) {
    mrb_value context;
    mrb_value* args;
    int argc;
@@ -192,7 +226,7 @@ mrb_cef_v8_exec(mrb_state* mrb, mrb_value self) {
 
   auto context = CefV8Context::GetCurrentContext();
   context->GetFrame()->ExecuteJavaScript(CefString(script_text), context->GetFrame()->GetURL(), 0);
-  return self;
+  return mrb_nil_value();
 }
 
 #ifdef __cplusplus
@@ -229,9 +263,13 @@ void mrb_mruby_cef_gem_init(mrb_state* mrb) {
   TYPE_CHECK_BINDING(is_function);
 #undef TYPE_CHECK_BINDING
 
+  mrb_define_method(mrb, mrb_cef.js_object_class, "bool_value", mrb_cef_v8_value_get_bool_value, MRB_ARGS_NONE());
+  mrb_define_method(mrb, mrb_cef.js_object_class, "int_value", mrb_cef_v8_value_get_int_value, MRB_ARGS_NONE());
+  mrb_define_method(mrb, mrb_cef.js_object_class, "double_value", mrb_cef_v8_value_get_double_value, MRB_ARGS_NONE());
+  mrb_define_method(mrb, mrb_cef.js_object_class, "string_value", mrb_cef_v8_value_get_string_value, MRB_ARGS_NONE());
   mrb_define_method(mrb, mrb_cef.js_object_class, "[]", mrb_cef_v8_js_object_get_property, MRB_ARGS_REQ(1));
   mrb_define_method(mrb, mrb_cef.js_object_class, "[]=", mrb_cef_v8_js_object_set_property, MRB_ARGS_REQ(2));
-  mrb_define_method(mrb, mrb_cef.js_object_class, "call", mrb_cef_v8_js_object_call, MRB_ARGS_REQ(2));
+  mrb_define_method(mrb, mrb_cef.js_object_class, "apply", mrb_cef_v8_js_object_apply, MRB_ARGS_REQ(2));
   
 }
 

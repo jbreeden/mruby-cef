@@ -28,7 +28,13 @@ MRubyV8Handler::Execute(const CefString& name,
 
       mrb_value rb_args = mrb_cef_v8_value_wrap(this->mrb, args);
       mrb_value ret = mrb_funcall(this->mrb, this->block, "call", 1, rb_args);
-      retval = mrb_cef_v8_value_unwrap(mrb, ret);
+      if (strcmp(mrb_obj_classname(this->mrb, ret), "JsObject")) {
+         retval = mrb_cef_v8_value_unwrap(mrb, ret);
+      }
+      else {
+         retval = CefV8Value::CreateUndefined();
+      }
+      
       return true;
    }
 
