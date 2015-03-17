@@ -27,8 +27,8 @@ MRubyV8Handler::Execute(const CefString& name,
       }
 
       mrb_value rb_args = mrb_cef_v8_value_wrap(this->mrb, args);
-      mrb_funcall(this->mrb, this->block, "call", 1, rb_args);
-      retval = CefV8Value::CreateUndefined();
+      mrb_value ret = mrb_funcall(this->mrb, this->block, "call", 1, rb_args);
+      retval = mrb_cef_v8_value_unwrap(mrb, ret);
       return true;
    }
 
