@@ -27,14 +27,23 @@ MRubyV8Handler::Execute(const CefString& name,
       }
 
       mrb_value rb_args = mrb_cef_v8_value_wrap(this->mrb, args);
-      mrb_value ret = mrb_funcall(this->mrb, this->block, "call", 1, rb_args);
-      if (strcmp(mrb_obj_classname(this->mrb, ret), "JsObject")) {
-         retval = mrb_cef_v8_value_unwrap(mrb, ret);
-      }
-      else {
-         retval = CefV8Value::CreateUndefined();
-      }
       
+      mrb_value ret;
+      try {
+         ret = mrb_funcall(this->mrb, this->block, "call", 1, rb_args);
+         if (strcmp(mrb_obj_classname(this->mrb, ret), "JsObject")) {
+            retval = mrb_cef_v8_value_unwrap(mrb, ret);
+         }
+         else {
+            retval = CefV8Value::CreateUndefined();
+         }
+      }
+      catch (...) {
+         mrb_value exc_string = mrb_funcall(mrb, mrb_obj_value(mrb->exc), "inspect", 0);
+         exception = mrb_string_value_cstr(mrb, &exc_string);
+         return true;
+      }
+
       return true;
    }
 
