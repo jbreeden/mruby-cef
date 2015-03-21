@@ -1,4 +1,5 @@
 #include "mruby_v8_handler.h"
+#include "mruby/array.h"
 #include "mruby_cef.h"
 #include "include\cef_v8.h"
 
@@ -19,27 +20,35 @@ MRubyV8Handler::Execute(const CefString& name,
 
    if (name == this->name) {
       
-      CefRefPtr<CefV8Value> args = CefV8Value::CreateArray(0);
-      CefRefPtr<CefV8Value> push_fn = args->GetValue(CefString("push"));
+      
+      mrb_value rb_args = mrb_ary_new_capa(mrb, 5);
 
       for (auto it = arguments.begin(); it != arguments.end(); ++it) {
-         push_fn->ExecuteFunction(args, { *it });
+         mrb_ary_push(mrb, rb_args, mrb_cef_v8_value_wrap(mrb, *it));
       }
-
-      mrb_value rb_args = mrb_cef_v8_value_wrap(this->mrb, args);
       
       mrb_value ret;
-      ret = mrb_funcall(this->mrb, this->block, "call", 1, rb_args);
-      const char* return_class = mrb_obj_classname(this->mrb, ret);
-      if (0 == strcmp(return_class, "Cef::V8::JsObject")) {
-         retval = mrb_cef_v8_value_unwrap(mrb, ret);
+      const char* return_class = NULL;
+
+      if (this->block.tt == MRB_TT_PROC) {
+         ret = mrb_funcall(this->mrb, this->block, "call", 1, rb_args);
       }
-      else if (mrb_exception_p(ret)) {
-         exception = mrb_str_to_cstr(mrb, mrb_funcall(mrb, ret, "inspect", 0));
+
+      if (mrb->exc) {
+         exception = mrb_str_to_cstr(mrb, mrb_funcall(mrb, ret, "to_s", 0));
          mrb->exc = NULL;
       }
       else {
-         retval = CefV8Value::CreateUndefined();
+         return_class = mrb_obj_classname(this->mrb, ret);
+      }
+
+      if (return_class) {
+         if (0 == strcmp(return_class, "Cef::V8::JsObject")) {
+            retval = mrb_cef_v8_value_unwrap(mrb, ret);
+         }
+         else {
+            retval = CefV8Value::CreateUndefined();
+         }
       }
 
       return true;
