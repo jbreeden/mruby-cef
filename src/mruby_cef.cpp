@@ -102,7 +102,6 @@ mrb_cef_v8_value_get_double_value(mrb_state *mrb, mrb_value self) {
 static mrb_value
 mrb_cef_v8_value_get_string_value(mrb_state *mrb, mrb_value self) {
    CefRefPtr<CefV8Value> js = mrb_cef_v8_value_unwrap(mrb, self);
-   mrb_value rb;
    return mrb_str_new_cstr(mrb, js->GetStringValue().ToString().c_str());
 }
 
@@ -166,6 +165,7 @@ mrb_cef_v8_create_function(mrb_state *mrb, mrb_value self) {
    mrb_value wrapped_function = mrb_cef_v8_value_wrap(mrb, func);
 
    // Keep a reference to the block & wrapped function in ruby-land so they're not garbage collected
+   // TODO: Should associate these with the current context and destroy them when the context is destroyed
    mrb_value js_functions = mrb_gv_get(mrb, mrb_intern_cstr(mrb, "$js_functions"));
    mrb_funcall(mrb, js_functions, "push", 1, block);
    mrb_funcall(mrb, js_functions, "push", 1, wrapped_function);
@@ -243,7 +243,7 @@ mrb_cef_v8_js_object_apply(mrb_state* mrb, mrb_value self) {
    else {
       js_fn->SetRethrowExceptions(true);
    }
-   
+
    CefRefPtr<CefV8Value> result = js_fn->ExecuteFunction(js_context, js_args);
    mrb_value rb_return_value;
 
@@ -268,10 +268,10 @@ mrb_cef_v8_eval(mrb_state* mrb, mrb_value self) {
   auto script_text = mrb_str_to_cstr(mrb, script_param);
 
   auto context = CefV8Context::GetCurrentContext();
-  
+
   CefRefPtr<CefV8Value> retval;
   CefRefPtr<CefV8Exception> exc;
-  
+
   bool succeeded = context->Eval(CefString(script_text), retval, exc);
 
   mrb_value rb_return_value;
@@ -282,7 +282,7 @@ mrb_cef_v8_eval(mrb_state* mrb, mrb_value self) {
   else if (exc.get() && mrb_test(block)) {
      rb_return_value = mrb_funcall(mrb, block, "call", 1, mrb_cef_v8_exception_wrap(mrb, exc));
   }
-  
+
   return rb_return_value;
 }
 
