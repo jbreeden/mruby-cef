@@ -5,31 +5,31 @@ Mruby bindings to CEF. A component of the [lamina project](https://github.com/jb
 
 Check out the [examples page](http://jbreeden.github.io/mruby-cef/) for details on interacting with JavaScript using mruby-cef. The examples page was extracted from the mruby-extensions sample in [lamina](https://github.com/jbreeden/lamina).
 
-Notes for building
-------------------
+Building
+--------
 
-libcef is NOT included. This means any mruby executables will fail to link unless you add libcef to your mruby build process.
-
-To build *only* libmruby, exclude any gems in the default `mrbgems` directory that have 'bin' in the name. 
-Then you can link libmruby with an application that includes libcef later.
-
-Notes for building on Windows
------------------------------
-When building mruby on windows to link with the pre-built CEF via cl.exe,
-you may need to change the default /MD option of the visualstudio toolset to /MT.
-If not, you may see errors like "Some function foo was already defined in LIBCMTD.lib."
-Right now I'm accomplishing this with a block in my `build_config.rb`:
+To build this gem into your mruby instance, just download the repo and add a couple of lines to your `build_config.rb` file:
 
 ```Ruby
-conf.cc.flags =  conf.cc.flags[0].map { |val|
-  val == "/MD" ? "/MT" : val
-}
+MRuby::Build.new('host') do |conf|
+  # ... Other configurations...
 
-conf.cxx.flags =  conf.cxx.flags[0].map { |val|
-  val == "/MD" ? "/MT" : val
-}
+  # Include the mruby-apr gem
+  conf.gem "PATH/TO/mruby-cef"
+
+  # Call configure_muby_apr with the `conf` object
+  # (This just sets the required compiler options)
+  configure_mruby_cef(conf)
+
+end
 ```
 
-If you're building CEF from source, you can control your C runtime settings.
-Just make sure mruby, CEF, and you application all match.
-See: https://msdn.microsoft.com/en-us/library/2kzt1wy3.aspx
+Note: The `configure_mruby_cef` function currently only supports the Windows platform at the moment. If you're on another system, have a quick peak at the `mrbgem.rake` file and replace the body of the `else` clause in the platform check - shown below - with the required setup for your platform (pull requests are welcomed ;).
+
+```
+if ENV['OS'] =~ /windows/i
+  # ... already implemented ....
+else
+  raise "No mruby-cef build settings configured for this platform"
+end
+```
