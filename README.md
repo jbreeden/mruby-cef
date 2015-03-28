@@ -3,7 +3,7 @@ mruby-cef
 
 Mruby bindings to CEF. A component of the [lamina project](https://github.com/jbreeden/lamina).
 
-Check out the [examples page](http://jbreeden.github.io/mruby-cef/) for details on interacting with JavaScript using mruby-cef. The examples page was extracted from the mruby-extensions sample in [lamina](https://github.com/jbreeden/lamina).
+Docs are in the `doc/` folder. Check out the [examples page](http://jbreeden.github.io/mruby-cef/) to see some actual usage. The examples page was extracted from the mruby-extensions sample in [lamina](https://github.com/jbreeden/lamina).
 
 Building
 --------
