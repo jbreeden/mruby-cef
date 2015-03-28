@@ -36,76 +36,35 @@ mrb_cef_v8_exception_unwrap(mrb_state* mrb, mrb_value cef_v8_exception) {
    return *(CefRefPtr<CefV8Exception>*) DATA_PTR(wrapped_value);
 }
 
-/* Type Checks */
+//<
+// Module Cef::V8
+// ==============
+//>
 
-#define TYPE_CHECK_FN(fn, checkMethod) \
-   static mrb_value                                             \
-   fn (mrb_state *mrb, mrb_value self) {                        \
-      if (mrb_cef_v8_value_unwrap(mrb, self)->checkMethod()) {  \
-         return mrb_true_value();                               \
-      }                                                         \
-      return mrb_false_value();                                 \
-   }
-
-TYPE_CHECK_FN(mrb_cef_v8_value_is_undefined, IsUndefined)
-TYPE_CHECK_FN(mrb_cef_v8_value_is_null, IsNull)
-TYPE_CHECK_FN(mrb_cef_v8_value_is_bool, IsBool)
-TYPE_CHECK_FN(mrb_cef_v8_value_is_int, IsInt)
-TYPE_CHECK_FN(mrb_cef_v8_value_is_uint, IsUInt)
-TYPE_CHECK_FN(mrb_cef_v8_value_is_double, IsDouble)
-TYPE_CHECK_FN(mrb_cef_v8_value_is_date, IsDate)
-TYPE_CHECK_FN(mrb_cef_v8_value_is_string, IsString)
-TYPE_CHECK_FN(mrb_cef_v8_value_is_object, IsObject)
-TYPE_CHECK_FN(mrb_cef_v8_value_is_array, IsArray)
-TYPE_CHECK_FN(mrb_cef_v8_value_is_function, IsFunction)
-
-#undef TYPE_CHECK_FN
-
-/* Getting JS Values */
-
-static mrb_value
-mrb_cef_v8_value_get_bool_value(mrb_state *mrb, mrb_value self) {
-   CefRefPtr<CefV8Value> js = mrb_cef_v8_value_unwrap(mrb, self);
-   if (js->GetBoolValue()) {
-      return mrb_true_value();
-   }
-   return mrb_false_value();
-}
-
-static mrb_value
-mrb_cef_v8_value_get_int_value(mrb_state *mrb, mrb_value self) {
-   CefRefPtr<CefV8Value> js = mrb_cef_v8_value_unwrap(mrb, self);
-   mrb_value rb;
-   SET_INT_VALUE(rb, js->GetIntValue());
-   return rb;
-}
-
-static mrb_value
-mrb_cef_v8_value_get_double_value(mrb_state *mrb, mrb_value self) {
-   CefRefPtr<CefV8Value> js = mrb_cef_v8_value_unwrap(mrb, self);
-   mrb_value rb;
-   SET_FLOAT_VALUE(MRB, rb, js->GetDoubleValue());
-   return rb;
-}
-
-static mrb_value
-mrb_cef_v8_value_get_string_value(mrb_state *mrb, mrb_value self) {
-   CefRefPtr<CefV8Value> js = mrb_cef_v8_value_unwrap(mrb, self);
-   return mrb_str_new_cstr(mrb, js->GetStringValue().ToString().c_str());
-}
-
-/* Object Creation */
-
+//<
+// ### `::create_undefined`
+// - Creates a JsObject containing a JavaScript undefined
+//>
 static mrb_value
 mrb_cef_v8_create_undefined(mrb_state *mrb, mrb_value self) {
    return mrb_cef_v8_value_wrap(mrb, CefV8Value::CreateUndefined());
 }
 
+//<
+// ### `::create_null`
+// - Creates a JsObject containing a JavaScript null
+//>
 static mrb_value
 mrb_cef_v8_create_null(mrb_state *mrb, mrb_value self) {
    return mrb_cef_v8_value_wrap(mrb, CefV8Value::CreateNull());
 }
 
+//<
+// ### `::create_bool(value)`
+// - Creates a JsObject containing a JavaScript bool
+// - Args
+//   + `value`: If `nil` or `flase`, returns a JavaScript fale, else returns a JavaScript true
+//>
 static mrb_value
 mrb_cef_v8_create_bool(mrb_state *mrb, mrb_value self) {
    mrb_value param;
@@ -113,6 +72,12 @@ mrb_cef_v8_create_bool(mrb_state *mrb, mrb_value self) {
    return mrb_cef_v8_value_wrap(mrb, CefV8Value::CreateBool(mrb_test(param)));
 }
 
+//<
+// ### `::create_int(value)`
+// - Creates a JsObject containing a JavaScript int
+// - Args
+//   + `value`: A number to convert to a JavaScript int
+//>
 static mrb_value
 mrb_cef_v8_create_int(mrb_state *mrb, mrb_value self) {
    mrb_value int_param;
@@ -120,6 +85,12 @@ mrb_cef_v8_create_int(mrb_state *mrb, mrb_value self) {
    return mrb_cef_v8_value_wrap(mrb, CefV8Value::CreateInt(int_param.value.i));
 }
 
+//<
+// ### `::create_float(value)`
+// - Creates a JsObject containing a JavaScript float
+// - Args
+//   + `value`: A number to convert to a JavaScript float
+//>
 static mrb_value
 mrb_cef_v8_create_float(mrb_state *mrb, mrb_value self) {
    mrb_value param;
@@ -127,6 +98,12 @@ mrb_cef_v8_create_float(mrb_state *mrb, mrb_value self) {
    return mrb_cef_v8_value_wrap(mrb, CefV8Value::CreateDouble(mrb_float(param)));
 }
 
+//<
+// ### `::create_string(rb_string)`
+// - Creates a JsObject containing a JavaScript string
+// - Args
+//   + `rb_string`, the ruby string to convert to a JavaScript value
+//>
 static mrb_value
 mrb_cef_v8_create_string(mrb_state *mrb, mrb_value self) {
    mrb_value rbString;
@@ -135,11 +112,27 @@ mrb_cef_v8_create_string(mrb_state *mrb, mrb_value self) {
    return mrb_cef_v8_value_wrap(mrb, CefV8Value::CreateString(cString));
 }
 
+//<
+// ### `::create_object`
+// - Creates a JsObject containing a JavaScript object
+//>
 static mrb_value
 mrb_cef_v8_create_object(mrb_state *mrb, mrb_value self) {
    return mrb_cef_v8_value_wrap(mrb, CefV8Value::CreateObject(NULL));
 }
 
+//<
+// ### `::create_function(name, &block)`
+// - Creates a JsObject containing a JavaScript function
+// - Args
+//   + `name`: The name of the function
+//   + `block`: A block accepting an array of JsObjects as the only parameter. <br/>
+//              This block will be executed when the funciton is called from JavaScript. <br/>
+//              If the block returns a JsObject, it will be unwrapped and returned to the caller. <br/>
+//              If the block returns anything else, `undefined` will be returned to JavaScript. <br/>
+//              If the block throws, a JavaScript Error object will be thrown containing the result <br/>
+//              of calling `to_s` on the ruby exception. <br/>
+//>
 static mrb_value
 mrb_cef_v8_create_function(mrb_state *mrb, mrb_value self) {
    mrb_value name;
@@ -162,11 +155,169 @@ mrb_cef_v8_create_function(mrb_state *mrb, mrb_value self) {
    return wrapped_function;
 }
 
+//<
+// ### `::window`
+// - Returns the global `window` object fromt the current V8 context
+//>
 static mrb_value
 mrb_cef_v8_get_window(mrb_state* mrb, mrb_value self) {
    return mrb_cef_v8_value_wrap(mrb, CefV8Context::GetCurrentContext()->GetGlobal());
 }
 
+//<
+// ### `::eval(str)`
+// - Evaluates the given string as JavaScript in the current V8 context
+//>
+mrb_value
+mrb_cef_v8_eval(mrb_state* mrb, mrb_value self) {
+   mrb_value script_param;
+   mrb_value block;
+   mrb_get_args(mrb, "S&", &script_param, &block);
+
+   auto script_text = mrb_str_to_cstr(mrb, script_param);
+
+   auto context = CefV8Context::GetCurrentContext();
+
+   CefRefPtr<CefV8Value> retval;
+   CefRefPtr<CefV8Exception> exc;
+
+   bool succeeded = context->Eval(CefString(script_text), retval, exc);
+
+   mrb_value rb_return_value;
+
+   if (succeeded) {
+      rb_return_value = mrb_cef_v8_value_wrap(mrb, retval);
+   }
+   else if (exc.get() && mrb_test(block)) {
+      rb_return_value = mrb_funcall(mrb, block, "call", 1, mrb_cef_v8_exception_wrap(mrb, exc));
+   }
+
+   return rb_return_value;
+}
+
+//<
+// class Cef::V8::JsObject
+// =======================
+//>
+
+//<
+// ### `#bool_value`
+// - Returns the bool value of this JsObject. (Should check type with `is_bool?` first)
+//>
+static mrb_value
+mrb_cef_v8_value_get_bool_value(mrb_state *mrb, mrb_value self) {
+   CefRefPtr<CefV8Value> js = mrb_cef_v8_value_unwrap(mrb, self);
+   if (js->GetBoolValue()) {
+      return mrb_true_value();
+   }
+   return mrb_false_value();
+}
+
+//<
+// ### `#int_value`
+// - Returns the int value of this JsObject. (Should check type with `is_int?` first)
+//>
+static mrb_value
+mrb_cef_v8_value_get_int_value(mrb_state *mrb, mrb_value self) {
+   CefRefPtr<CefV8Value> js = mrb_cef_v8_value_unwrap(mrb, self);
+   mrb_value rb;
+   SET_INT_VALUE(rb, js->GetIntValue());
+   return rb;
+}
+
+//<
+// ### `#double_value`
+// - Returns the double value of this JsObject. (Should check type with `is_double?` first)
+//>
+static mrb_value
+mrb_cef_v8_value_get_double_value(mrb_state *mrb, mrb_value self) {
+   CefRefPtr<CefV8Value> js = mrb_cef_v8_value_unwrap(mrb, self);
+   mrb_value rb;
+   SET_FLOAT_VALUE(MRB, rb, js->GetDoubleValue());
+   return rb;
+}
+
+//<
+// ### `#string_value`
+// - Returns the string value of this JsObject. (Should check type with `is_string?` first)
+//>
+static mrb_value
+mrb_cef_v8_value_get_string_value(mrb_state *mrb, mrb_value self) {
+   CefRefPtr<CefV8Value> js = mrb_cef_v8_value_unwrap(mrb, self);
+   return mrb_str_new_cstr(mrb, js->GetStringValue().ToString().c_str());
+}
+
+#define TYPE_CHECK_FN(fn, checkMethod) \
+   static mrb_value                                             \
+   fn (mrb_state *mrb, mrb_value self) {                        \
+      if (mrb_cef_v8_value_unwrap(mrb, self)->checkMethod()) {  \
+         return mrb_true_value();                               \
+      }                                                         \
+      return mrb_false_value();                                 \
+   }
+
+//<
+// ### `#is_undefined?`
+// - Returns true if this JsObject is a JavaScript undefined, else false
+//>
+TYPE_CHECK_FN(mrb_cef_v8_value_is_undefined, IsUndefined)
+//<
+// ### `#is_null?`
+// - Returns true if this JsObject is a JavaScript null, else false
+//>
+TYPE_CHECK_FN(mrb_cef_v8_value_is_null, IsNull)
+//<
+// ### `#is_bool?`
+// - Returns true if this JsObject is a JavaScript bool, else false
+//>
+TYPE_CHECK_FN(mrb_cef_v8_value_is_bool, IsBool)
+//<
+// ### `#is_int?`
+// - Returns true if this JsObject is a JavaScript int, else false
+//>
+TYPE_CHECK_FN(mrb_cef_v8_value_is_int, IsInt)
+//<
+// ### `#is_uint?`
+// - Returns true if this JsObject is a JavaScript uint, else false
+//>
+TYPE_CHECK_FN(mrb_cef_v8_value_is_uint, IsUInt)
+//<
+// ### `#is_double?`
+// - Returns true if this JsObject is a JavaScript double, else false
+//>
+TYPE_CHECK_FN(mrb_cef_v8_value_is_double, IsDouble)
+//<
+// ### `#is_date?`
+// - Returns true if this JsObject is a JavaScript date, else false
+//>
+TYPE_CHECK_FN(mrb_cef_v8_value_is_date, IsDate)
+//<
+// ### `#is_string?`
+// - Returns true if this JsObject is a JavaScript string, else false
+//>
+TYPE_CHECK_FN(mrb_cef_v8_value_is_string, IsString)
+//<
+// ### `#is_object?`
+// - Returns true if this JsObject is a JavaScript object, else false
+//>
+TYPE_CHECK_FN(mrb_cef_v8_value_is_object, IsObject)
+//<
+// ### `#is_array?`
+// - Returns true if this JsObject is a JavaScript array, else false
+//>
+TYPE_CHECK_FN(mrb_cef_v8_value_is_array, IsArray)
+//<
+// ### `#is_function?`
+// - Returns true if this JsObject is a JavaScript function, else false
+//>
+TYPE_CHECK_FN(mrb_cef_v8_value_is_function, IsFunction)
+
+#undef TYPE_CHECK_FN
+
+//<
+// ### `#[](key)`
+// - Returns the value of the property named by `key` on the underlying JavaScript object
+//>
 mrb_value
 mrb_cef_v8_js_object_get_property(mrb_state* mrb, mrb_value self) {
    mrb_value key_param;
@@ -187,6 +338,11 @@ mrb_cef_v8_js_object_get_property(mrb_state* mrb, mrb_value self) {
    }
 }
 
+//<
+// ### `#[](key, value)`
+// - Sets the value of the property named by `key` on the underlying JavaScript object to `value`
+//   (which must be a JsObject)
+//>
 mrb_value
 mrb_cef_v8_js_object_set_property(mrb_state* mrb, mrb_value self) {
    mrb_value key_param;
@@ -208,6 +364,29 @@ mrb_cef_v8_js_object_set_property(mrb_state* mrb, mrb_value self) {
    return self;
 }
 
+//<
+// ### `#apply(context, args, &exception_handler)`
+// - Used to call a JavaScript function
+// - Pretty much just like `apply` from javascript
+// - Args
+//   + `context`: What to bind `this` to in the invoked function
+//   + `args`: An array of JsObject values to supply as parameters to the function
+//   + `exception_handler`: A block accepting a single parameter. <br/>
+//                          If the JavaScript function throws, the exception is wrapped
+//                          in a Cef::V8::JsException and pass to this block.
+// - Return
+//   + The return value of the JavaScript function, wrapped in a `Cef::V8::JsObject`
+// - Notes
+//   + If the JavaScript function throws, you must either handle the exception or
+//     bail out immediately.
+//   + If you do not supply the `exception_handler` param, any thrown exceptions are
+//     immediately raised in JavaScript land. Continuing to execute code that interacts
+//     with the JavaScript context is an error (semantically speaking). For this reason,
+//     if there is any chance an exception will be thrown by the called function, you
+//     should always provid an `exception_handler` block.
+//   + If you can't handler the `exception` passed to the `exception_handler` block,
+//     simply `raise exception.message` to re-throw it in JavaScript land.
+//>
 mrb_value
 mrb_cef_v8_js_object_apply(mrb_state* mrb, mrb_value self) {
    mrb_value context;
@@ -248,33 +427,14 @@ mrb_cef_v8_js_object_apply(mrb_state* mrb, mrb_value self) {
    return rb_return_value;
 }
 
-mrb_value
-mrb_cef_v8_eval(mrb_state* mrb, mrb_value self) {
-   mrb_value script_param;
-   mrb_value block;
-   mrb_get_args(mrb, "S&", &script_param, &block);
+//<
+// # Class Cef::V8::JsException
+//>
 
-   auto script_text = mrb_str_to_cstr(mrb, script_param);
-
-   auto context = CefV8Context::GetCurrentContext();
-
-   CefRefPtr<CefV8Value> retval;
-   CefRefPtr<CefV8Exception> exc;
-
-   bool succeeded = context->Eval(CefString(script_text), retval, exc);
-
-   mrb_value rb_return_value;
-
-   if (succeeded) {
-      rb_return_value = mrb_cef_v8_value_wrap(mrb, retval);
-   }
-   else if (exc.get() && mrb_test(block)) {
-      rb_return_value = mrb_funcall(mrb, block, "call", 1, mrb_cef_v8_exception_wrap(mrb, exc));
-   }
-
-   return rb_return_value;
-}
-
+//<
+// ### `#message`
+// - Returns the message from the wrapped JavaScript exception as a string
+//>
 mrb_value
 mrb_cef_v8_exception_get_message(mrb_state* mrb, mrb_value self) {
    CefRefPtr<CefV8Exception> v8_exception = mrb_cef_v8_exception_unwrap(mrb, self);
