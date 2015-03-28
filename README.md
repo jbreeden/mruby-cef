@@ -14,10 +14,10 @@ To build this gem into your mruby instance, just download the repo and add a cou
 MRuby::Build.new('host') do |conf|
   # ... Other configurations...
 
-  # Include the mruby-apr gem
+  # Include the mruby-cef gem
   conf.gem "PATH/TO/mruby-cef"
 
-  # Call configure_muby_apr with the `conf` object
+  # Call configure_muby_cef with the `conf` object
   # (This just sets the required compiler options)
   configure_mruby_cef(conf)
 
