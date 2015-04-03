@@ -24,5 +24,4 @@ MRuby::Gem::Specification.new('mruby-cef') do |spec|
   spec.license = 'MIT'
   spec.author  = 'Jared Breeden'
   spec.summary = 'Bindings to the CEF libraries'
-  spec.bins = %w(lamina)
 end
