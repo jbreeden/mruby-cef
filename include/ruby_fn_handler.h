@@ -3,7 +3,7 @@
 
 #include <string>
 #include "mruby.h"
-#include "include\cef_v8.h"
+#include "include/cef_v8.h"
 
 // Defines a CefV8Handler for a `ruby` function, callable from js,
 // that returns the result of running the ruby script passed in as

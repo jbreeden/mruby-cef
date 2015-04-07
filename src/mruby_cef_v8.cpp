@@ -438,7 +438,11 @@ mrb_cef_v8_js_object_apply(mrb_state* mrb, mrb_value self) {
 mrb_value
 mrb_cef_v8_exception_get_message(mrb_state* mrb, mrb_value self) {
    CefRefPtr<CefV8Exception> v8_exception = mrb_cef_v8_exception_unwrap(mrb, self);
+#if defined(_WIN32) || defined(_WIN64)
    return mrb_str_new_cstr(mrb, v8_exception->GetMessageA().ToString().c_str());
+#else
+  return mrb_str_new_cstr(mrb, v8_exception->GetMessage().ToString().c_str());
+#endif
 }
 
 #ifdef __cplusplus
