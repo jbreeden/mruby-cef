@@ -37,7 +37,11 @@ RubyFnHandler::Execute(const CefString& name,
       const char* return_class = NULL;
       
       string script_text = script->GetStringValue().ToString();
+      
+      auto prev_jmp = mrb->jmp;
+      mrb->jmp = NULL;
       ret = mrb_load_string(this->mrb, script_text.c_str());
+      mrb->jmp = prev_jmp;
 
       if (this->mrb->exc) {
          exception = mrb_str_to_cstr(this->mrb, mrb_funcall(this->mrb, mrb_obj_value(this->mrb->exc), "to_s", 0));
