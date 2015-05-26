@@ -161,7 +161,14 @@ mrb_cef_v8_create_function(mrb_state *mrb, mrb_value self) {
 //>
 static mrb_value
 mrb_cef_v8_get_window(mrb_state* mrb, mrb_value self) {
-   return mrb_cef_v8_value_wrap(mrb, CefV8Context::GetCurrentContext()->GetGlobal());
+   CefRefPtr<CefV8Context> context = CefV8Context::GetCurrentContext();
+
+   if (context.get() == NULL) {
+      mrb_raise(mrb, mrb->eStandardError_class, "No V8 context currently available");
+      return mrb_nil_value();
+   }
+
+   return mrb_cef_v8_value_wrap(mrb, context->GetGlobal());
 }
 
 //<
